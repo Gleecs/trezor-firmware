@@ -87,7 +87,6 @@ class TestProtectCall:
     def test_pin(self, client):
         with client:
             assert client.debug.read_pin()[0] == "1234"
-            client.setup_debuglink(button=True, pin_correct=True)
             client.set_expected_responses(
                 [proto.ButtonRequest(), proto.PinMatrixRequest(), proto.Success()]
             )
@@ -95,19 +94,13 @@ class TestProtectCall:
 
     @pytest.mark.setup_client(pin="1234", passphrase=True)
     def test_incorrect_pin(self, client):
-        client.setup_debuglink(button=True, pin_correct=False)
-        with pytest.raises(PinException):
-            self._some_protected_call(client, False, True, False)
-
-    @pytest.mark.setup_client(pin="1234", passphrase=True)
-    def test_cancelled_pin(self, client):
-        client.setup_debuglink(button=True, pin_correct=False)  # PIN cancel
+        client.set_pin("5678")
         with pytest.raises(PinException):
             self._some_protected_call(client, False, True, False)
 
     @pytest.mark.setup_client(pin="1234", passphrase=True)
     def test_exponential_backoff_with_reboot(self, client):
-        client.setup_debuglink(button=True, pin_correct=False)
+        client.set_pin("5678")
 
         def test_backoff(attempts, start):
             if attempts <= 1:
